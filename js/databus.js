@@ -1,64 +1,116 @@
 import Pool from './base/pool';
+import { getAllPlayableLetters } from './content/letters';
+import {
+  loadProfiles,
+  saveProfiles,
+  loadActiveProfileId,
+  saveActiveProfileId,
+  createProfile,
+} from './runtime/storage';
 
 let instance;
 
+const MAX_PROFILES = 4;
+
 /**
- * 全局状态管理器
- * 负责管理游戏的状态，包括帧数、分数、子弹、敌人和动画等
+ * 全局状态管理器：场景切换、探险者档案、字母掌握进度
  */
 export default class DataBus {
-  // 直接在类中定义实例属性
-  enemys = []; // 存储敌人
-  bullets = []; // 存储子弹
-  animations = []; // 存储动画
-  frame = 0; // 当前帧数
-  score = 0; // 当前分数
-  isGameOver = false; // 游戏是否结束
-  pool = new Pool(); // 初始化对象池
+  pool = new Pool();
+  animations = [];
+  frame = 0;
+
+  scene = 'profile'; // 'profile' | 'map' | 'challenge'
+  activeLetterId = null; // 当前挑战的字母 id
+
+  profiles = [];
+  activeProfileId = null;
 
   constructor() {
-    // 确保单例模式
     if (instance) return instance;
-
     instance = this;
+
+    this.profiles = loadProfiles();
+    this.activeProfileId = loadActiveProfileId();
   }
 
-  // 重置游戏状态
-  reset() {
-    this.frame = 0; // 当前帧数
-    this.score = 0; // 当前分数
-    this.bullets = []; // 存储子弹
-    this.enemys = []; // 存储敌人
-    this.animations = []; // 存储动画
-    this.isGameOver = false; // 游戏是否结束
+  get activeProfile() {
+    return this.profiles.find((p) => p.id === this.activeProfileId) || null;
   }
 
-  // 游戏结束
-  gameOver() {
-    this.isGameOver = true;
+  hasEmptySlot() {
+    return this.profiles.length < MAX_PROFILES;
   }
 
-  /**
-   * 回收敌人，进入对象池
-   * 此后不进入帧循环
-   * @param {Object} enemy - 要回收的敌人对象
-   */
-  removeEnemy(enemy) {
-    const temp = this.enemys.splice(this.enemys.indexOf(enemy), 1);
-    if (temp) {
-      this.pool.recover('enemy', enemy); // 回收敌人到对象池
+  get maxProfiles() {
+    return MAX_PROFILES;
+  }
+
+  createProfileInSlot(slotIndex) {
+    const profile = createProfile(slotIndex);
+    this.profiles.push(profile);
+    saveProfiles(this.profiles);
+    this.selectProfile(profile.id);
+    return profile;
+  }
+
+  selectProfile(id) {
+    this.activeProfileId = id;
+    saveActiveProfileId(id);
+    this.scene = 'map';
+  }
+
+  goToMap() {
+    this.scene = 'map';
+    this.activeLetterId = null;
+  }
+
+  startChallenge(letterId) {
+    this.activeLetterId = letterId;
+    this.scene = 'challenge';
+  }
+
+  // 当前档案已掌握（认字徽章点亮）的字母数量，决定地图上解锁到第几个
+  masteredCount() {
+    const profile = this.activeProfile;
+    if (!profile) return 0;
+    const letters = getAllPlayableLetters();
+    let count = 0;
+    for (const letter of letters) {
+      if (profile.progress[letter.id] && profile.progress[letter.id].recognized) {
+        count++;
+      } else {
+        break;
+      }
     }
+    return count;
   }
 
-  /**
-   * 回收子弹，进入对象池
-   * 此后不进入帧循环
-   * @param {Object} bullet - 要回收的子弹对象
-   */
-  removeBullets(bullet) {
-    const temp = this.bullets.splice(this.bullets.indexOf(bullet), 1);
-    if (temp) {
-      this.pool.recover('bullet', bullet); // 回收子弹到对象池
-    }
+  isLetterUnlocked(letterId) {
+    const letters = getAllPlayableLetters();
+    const index = letters.findIndex((l) => l.id === letterId);
+    if (index === -1) return false;
+    return index <= this.masteredCount();
+  }
+
+  isLetterMastered(letterId) {
+    const profile = this.activeProfile;
+    return !!(profile && profile.progress[letterId] && profile.progress[letterId].recognized);
+  }
+
+  completeRecognition(letterId, coinsEarned) {
+    const profile = this.activeProfile;
+    if (!profile) return;
+    if (!profile.progress[letterId]) profile.progress[letterId] = {};
+    profile.progress[letterId].recognized = true;
+    profile.coins += coinsEarned;
+    saveProfiles(this.profiles);
+  }
+
+  awardCoins(amount) {
+    const profile = this.activeProfile;
+    if (!profile) return;
+    profile.coins += amount;
+    saveProfiles(this.profiles);
   }
 }
