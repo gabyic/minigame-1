@@ -38,10 +38,6 @@ export default class DataBus {
     return this.profiles.find((p) => p.id === this.activeProfileId) || null;
   }
 
-  hasEmptySlot() {
-    return this.profiles.length < MAX_PROFILES;
-  }
-
   get maxProfiles() {
     return MAX_PROFILES;
   }
@@ -84,13 +80,6 @@ export default class DataBus {
       }
     }
     return count;
-  }
-
-  isLetterUnlocked(letterId) {
-    const letters = getAllPlayableLetters();
-    const index = letters.findIndex((l) => l.id === letterId);
-    if (index === -1) return false;
-    return index <= this.masteredCount();
   }
 
   isLetterMastered(letterId) {

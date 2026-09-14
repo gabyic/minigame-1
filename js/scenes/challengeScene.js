@@ -101,8 +101,12 @@ export default class ChallengeScene {
   }
 
   render(ctx) {
-    ctx.fillStyle = this.kingdom.color + '22';
+    ctx.fillStyle = '#eaf3ff';
     ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = this.kingdom.color;
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.globalAlpha = 1;
 
     drawPanel(ctx, this.backRect.x, this.backRect.y, this.backRect.w, this.backRect.h, 14, '#ffffff', '#d9e4fb');
     drawText(ctx, '← 地图', this.backRect.x + this.backRect.w / 2, this.backRect.y + this.backRect.h / 2, {
