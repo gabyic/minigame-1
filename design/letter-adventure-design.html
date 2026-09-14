@@ -1,0 +1,551 @@
+<title>字母大冒险 设计方案</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@500;700;800&display=swap">
+<style>
+  :root{
+    --bg:#eaf3ff;
+    --surface:#ffffff;
+    --surface-2:#f4f8ff;
+    --ink:#241f45;
+    --ink-soft:#5b5480;
+    --ink-faint:#8a84ab;
+    --yolk:#ffc53d;
+    --yolk-deep:#f2960a;
+    --grape:#8b5cf6;
+    --grape-deep:#6d3fd6;
+    --mint:#2fbf88;
+    --coral:#ff6b6b;
+    --sky:#4c8dff;
+    --line:#d9e4fb;
+    --shadow: 4px 4px 0 rgba(36,31,69,0.08);
+  }
+  :root:not([data-theme="light"]){
+    @media (prefers-color-scheme: dark){
+      --bg:#161233;
+      --surface:#211c46;
+      --surface-2:#282259;
+      --ink:#f1eeff;
+      --ink-soft:#c6c0ea;
+      --ink-faint:#8f88bd;
+      --line:#3a3470;
+      --shadow: 4px 4px 0 rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#161233;
+    --surface:#211c46;
+    --surface-2:#282259;
+    --ink:#f1eeff;
+    --ink-soft:#c6c0ea;
+    --ink-faint:#8f88bd;
+    --line:#3a3470;
+    --shadow: 4px 4px 0 rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    padding-inline:20px;
+    padding-block:0 64px;
+    line-height:1.6;
+  }
+  h1,h2,h3{ text-wrap:balance; margin:0; }
+  .display{ font-family:"ZCOOL KuaiLe","PingFang SC",sans-serif; }
+  .tag-font{ font-family:"Baloo 2","Nunito",sans-serif; }
+
+  .wrap{ max-width:920px; margin:0 auto; }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-block:48px 32px;
+    text-align:center;
+  }
+  .eyebrow{
+    display:inline-block;
+    font-family:"Baloo 2",sans-serif;
+    font-weight:700;
+    font-size:0.78rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--grape-deep);
+    background:var(--surface-2);
+    border:2px solid var(--grape);
+    border-radius:999px;
+    padding:5px 16px;
+    margin-bottom:18px;
+  }
+  .hero h1{
+    font-size:clamp(2.2rem,6vw,3.4rem);
+    color:var(--ink);
+    margin-bottom:10px;
+  }
+  .hero h1 span{ color:var(--yolk-deep); }
+  .hero p.sub{
+    color:var(--ink-soft);
+    font-size:1.08rem;
+    max-width:60ch;
+    margin:0 auto;
+  }
+
+  .mascot-row{
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:22px;
+    margin:40px 0 8px;
+    flex-wrap:wrap;
+    position:relative;
+  }
+  .blob{
+    position:relative;
+    width:74px;height:66px;
+    border-radius: 52% 48% 55% 45% / 60% 55% 45% 40%;
+    box-shadow: var(--shadow);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    animation: bob 3.4s ease-in-out infinite;
+  }
+  .blob::before,.blob::after{
+    content:"";
+    position:absolute;
+    width:9px;height:11px;
+    background:var(--ink);
+    border-radius:50%;
+    top:26px;
+  }
+  .blob::before{ left:22px; }
+  .blob::after{ left:42px; }
+  .blob .cheek{
+    position:absolute; width:9px;height:6px; border-radius:50%;
+    background:rgba(255,255,255,.55); top:36px;
+  }
+  .blob .cheek.l{ left:12px; } .blob .cheek.r{ right:12px; }
+  .b1{ background:var(--mint); animation-delay:.1s; }
+  .b2{ background:var(--coral); animation-delay:.5s; }
+  .b3{ background:var(--sky); animation-delay:.9s; }
+  .b4{ background:var(--grape); animation-delay:1.3s; }
+  .b5{ background:var(--yolk); animation-delay:1.7s; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-8px) } }
+  @media (prefers-reduced-motion: reduce){ .blob{ animation:none; } }
+
+  .path-row{
+    display:flex; justify-content:center; align-items:center; gap:6px;
+    max-width:560px; margin:0 auto 28px; flex-wrap:wrap;
+  }
+  .path-row .node{
+    width:10px;height:10px;border-radius:50%;background:var(--line);
+  }
+  .path-row .node.on{ background:var(--yolk-deep); }
+  .path-row .seg{ flex:1; min-width:14px; height:3px; background:var(--line); border-radius:2px; }
+
+  /* ---------- Sections ---------- */
+  section{ margin-top:56px; }
+  .kicker{
+    font-family:"Baloo 2",sans-serif;
+    font-weight:700;
+    font-size:.8rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:6px;
+  }
+  h2.title{
+    font-size:1.7rem;
+    margin-bottom:18px;
+  }
+  p.lead{ color:var(--ink-soft); max-width:66ch; margin-bottom:22px;}
+
+  .card{
+    background:var(--surface);
+    border:2.5px solid var(--line);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    padding:20px;
+  }
+
+  /* Trial loop */
+  .loop-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:680px){ .loop-grid{ grid-template-columns:1fr; } }
+  .loop-card{ text-align:left; }
+  .loop-card .icon{
+    width:44px;height:44px;border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px; color:#fff;
+  }
+  .loop-card h3{ font-size:1.05rem; margin-bottom:6px; }
+  .loop-card p{ color:var(--ink-soft); font-size:.92rem; margin:0; }
+  .loop-card .step{
+    font-family:"Baloo 2",sans-serif; font-weight:700; font-size:.72rem;
+    color:var(--ink-faint); letter-spacing:.08em; margin-bottom:8px;
+  }
+
+  /* Evolution chain */
+  .evo-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .evo-card{
+    width:150px; text-align:center; padding:16px 10px;
+  }
+  .evo-card .stage-blob{ width:56px;height:50px; margin:0 auto 10px; position:relative;
+    border-radius:52% 48% 55% 45% / 60% 55% 45% 40%; box-shadow:var(--shadow); }
+  .evo-card .stage-blob::before,.evo-card .stage-blob::after{
+    content:""; position:absolute; width:7px;height:9px; background:var(--ink); border-radius:50%; top:19px;
+  }
+  .evo-card .stage-blob::before{ left:16px; } .evo-card .stage-blob::after{ left:32px; }
+  .evo1{ background:#e7d9c3; }
+  .evo2{ background:var(--yolk); }
+  .evo3{ background:var(--yolk-deep); }
+  .evo3::after{ content:"✦"; position:absolute; top:-10px; right:6px; color:var(--grape); font-size:1.1rem; }
+  .evo-card .name{ font-family:"Baloo 2",sans-serif; font-weight:700; font-size:.92rem; }
+  .evo-card .badges{ font-size:.72rem; color:var(--ink-faint); margin-top:4px; }
+  .arrow{ font-size:1.4rem; color:var(--ink-faint); }
+
+  /* Reward grid */
+  .reward-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:760px){ .reward-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:480px){ .reward-grid{ grid-template-columns:1fr; } }
+  .reward-card{ padding:16px; }
+  .reward-card .emoji{ font-size:1.5rem; }
+  .reward-card h3{ font-size:.98rem; margin:8px 0 4px; }
+  .reward-card p{ font-size:.85rem; color:var(--ink-soft); margin:0; }
+
+  /* Kingdom table */
+  .kingdom{ margin-bottom:20px; border-radius:20px; overflow:hidden; border:2.5px solid var(--line); }
+  .kingdom .head{
+    padding:14px 18px; color:#fff; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
+  }
+  .kingdom .head .name{ font-family:"ZCOOL KuaiLe"; font-size:1.15rem; }
+  .kingdom .head .boss{ font-size:.78rem; opacity:.92; font-family:"Baloo 2",sans-serif; }
+  .kingdom .letters{
+    background:var(--surface); display:flex; flex-wrap:wrap; gap:0;
+  }
+  .letter-cell{
+    flex:1 1 100px; min-width:100px; padding:12px 14px; border-right:1.5px dashed var(--line); border-top:1.5px dashed var(--line);
+  }
+  .letter-cell .lc-top{ display:flex; align-items:baseline; gap:6px; }
+  .letter-cell .big{ font-family:"Baloo 2",sans-serif; font-weight:800; font-size:1.3rem; }
+  .letter-cell .word{ font-size:.76rem; color:var(--ink-faint); }
+  .letter-cell .spirit{ font-size:.86rem; color:var(--ink-soft); margin-top:2px; }
+  .k1 .head{ background:var(--mint); } .k1 .big{ color:var(--mint); }
+  .k2 .head{ background:var(--coral); } .k2 .big{ color:var(--coral); }
+  .k3 .head{ background:var(--sky); } .k3 .big{ color:var(--sky); }
+  .k4 .head{ background:var(--grape); } .k4 .big{ color:var(--grape); }
+  .k5 .head{ background:var(--yolk-deep); } .k5 .big{ color:var(--yolk-deep); }
+
+  /* Accent toggle demo */
+  .accent-demo{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .flagbtn{
+    font-family:"Baloo 2",sans-serif; font-weight:700; font-size:.95rem;
+    border:2.5px solid var(--line); background:var(--surface-2); color:var(--ink-soft);
+    border-radius:14px; padding:10px 16px; cursor:pointer;
+  }
+  .flagbtn.active{ border-color:var(--yolk-deep); color:var(--ink); background:#fff4dc; }
+  :root[data-theme="dark"] .flagbtn.active, :root:not([data-theme="light"]) .flagbtn.active{ background:#3a2f10; }
+  .accent-out{
+    font-family:"Baloo 2",sans-serif; font-size:1.05rem; flex:1; min-width:220px;
+  }
+  .accent-out small{ display:block; color:var(--ink-faint); font-family:-apple-system,sans-serif; font-size:.78rem; margin-top:4px;}
+
+  /* Dashboard mock */
+  .dash-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .dash-row .who{ width:64px; font-size:.85rem; color:var(--ink-soft); font-weight:600; flex-shrink:0; }
+  .dash-grid{ display:grid; grid-template-columns:repeat(13,1fr); gap:4px; flex:1; }
+  .dash-cell{ aspect-ratio:1; border-radius:6px; }
+  .legend{ display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; font-size:.8rem; color:var(--ink-soft); }
+  .legend i{ width:12px;height:12px;border-radius:4px;display:inline-block; }
+
+  /* Roadmap */
+  .road{ display:flex; flex-direction:column; gap:0; }
+  .road-item{ display:flex; gap:14px; padding:14px 0; border-top:1.5px dashed var(--line); }
+  .road-item:first-child{ border-top:none; }
+  .road-badge{
+    flex-shrink:0; width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;font-weight:700;
+  }
+  .done{ background:var(--mint); }
+  .next{ background:var(--yolk-deep); }
+  .later{ background:var(--ink-faint); }
+  .road-item h3{ font-size:.98rem; margin:0 0 3px; }
+  .road-item p{ margin:0; font-size:.87rem; color:var(--ink-soft); }
+
+  code{ background:var(--surface-2); padding:1px 6px; border-radius:6px; font-size:.86em; }
+  a{ color:var(--sky); }
+  .footnote{ color:var(--ink-faint); font-size:.8rem; text-align:center; margin-top:60px; }
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="eyebrow">游戏设计方案 · v1</span>
+    <h1 class="display">字母大冒险<br><span>Letter Adventure</span></h1>
+    <p class="sub">给哥哥和妹妹的双语字母闯关游戏 —— 融合《蛋仔派对》的可爱养成，和《宝可梦》的收集进化，专治「认不出、写不出、读不准」。</p>
+
+    <div class="mascot-row">
+      <div class="blob b1"><span class="cheek l"></span><span class="cheek r"></span></div>
+      <div class="blob b2"><span class="cheek l"></span><span class="cheek r"></span></div>
+      <div class="blob b3"><span class="cheek l"></span><span class="cheek r"></span></div>
+      <div class="blob b4"><span class="cheek l"></span><span class="cheek r"></span></div>
+      <div class="blob b5"><span class="cheek l"></span><span class="cheek r"></span></div>
+    </div>
+    <div class="path-row">
+      <div class="node on"></div><div class="seg"></div>
+      <div class="node on"></div><div class="seg"></div>
+      <div class="node"></div><div class="seg"></div>
+      <div class="node"></div><div class="seg"></div>
+      <div class="node"></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="kicker">问题</div>
+    <h2 class="title">孩子到底卡在哪一步？</h2>
+    <p class="lead">
+      「记不住哪个字母是哪个」拆开看其实是三件独立的事：<b>认形</b>（b/d、p/q、m/n 长得像）、
+      <b>写法</b>（笔顺、上下行位置）、<b>读音</b>（字母名 vs. 自然拼读音，还分英式/美式）。
+      多数字母 App 只练"认字母卡片"，三件事只顾上一件。<b>字母大冒险</b>把这三件事做成闯关里必过的三道关，
+      并用孩子已经上头的两款游戏的爽点来"骗"他们反复练习。
+    </p>
+  </section>
+
+  <section>
+    <div class="kicker">核心玩法</div>
+    <h2 class="title">每个字母，三道关卡</h2>
+    <p class="lead">通关一个字母 = 集齐三枚徽章。三枚徽章集齐，字母精灵才会进化。</p>
+    <div class="loop-grid">
+      <div class="card loop-card">
+        <div class="icon" style="background:var(--mint)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="#fff" stroke-width="2"/></svg>
+        </div>
+        <div class="step">徽章 1 · 认一认 SPOT IT</div>
+        <h3>大小写连连看</h3>
+        <p>字母精灵从天而降，孩子在一堆长得像的"易混字母"（b/d、p/q、m/n）里，眼疾手快点出正确的那个，拼错会被提示但不扣血。</p>
+      </div>
+      <div class="card loop-card">
+        <div class="icon" style="background:var(--sky)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 20l3.6-1 11-11a2 2 0 0 0 0-3l-.6-.6a2 2 0 0 0-3 0l-11 11L3 19z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="step">徽章 2 · 写一写 TRACE IT</div>
+        <h3>手指描字母</h3>
+        <p>屏幕上出现虚线笔顺，手指沿线滑动，笔画走对会像蛋仔一样"Q 弹"发光；走出范围会有轻柔的弹回提示，不惩罚，只鼓励重试。</p>
+      </div>
+      <div class="card loop-card">
+        <div class="icon" style="background:var(--coral)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 9v6h4l5 5V4L8 9H4Z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M17 8a5 5 0 0 1 0 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="step">徽章 3 · 听一读 SAY IT</div>
+        <h3>双音标挑战</h3>
+        <p>点旗子切换 🇺🇸/🇬🇧，分别听字母名和自然拼读音，再跟读一次。两种口音都过关，徽章才点亮 —— 从小听惯两种口音。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">收集与进化 · 灵感来自宝可梦</div>
+    <h2 class="title">26 个字母精灵，集齐才算数</h2>
+    <p class="lead">
+      每个字母对应一只可爱的"字母精灵"，未捕获时在图鉴里是灰色剪影，吊足好奇心。
+      集满三枚徽章会触发进化 —— 进化不是等级刷出来的，是三项能力都扎实了才会发生。
+    </p>
+    <div class="card">
+      <div class="evo-row">
+        <div class="evo-card">
+          <div class="stage-blob evo1"></div>
+          <div class="name tag-font">呆呆蛋</div>
+          <div class="badges">Wobble Egg · 0/3 徽章</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="evo-card">
+          <div class="stage-blob evo2"></div>
+          <div class="name tag-font">嗡嗡宝</div>
+          <div class="badges">Buzzling · 2/3 徽章</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="evo-card">
+          <div class="stage-blob evo3"></div>
+          <div class="name tag-font">蜜语女王</div>
+          <div class="badges">Honeymaster · 3/3 徽章 ✦闪光</div>
+        </div>
+      </div>
+      <p style="text-align:center;color:var(--ink-faint);font-size:.82rem;margin:14px 0 0;">示例：字母 <b>B</b> 精灵的三段进化（B is for Bee）。集满徽章后有小概率变成「闪光」配色，参考宝可梦的稀有闪光机制。</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">奖励机制 · 灵感来自蛋仔派对</div>
+    <h2 class="title">让"练习"感觉像"玩"</h2>
+    <p class="lead">全部奖励都靠玩游戏获得的"字母币"兑换，不设内购，只做纯装饰性收集，避免变成攀比或课金焦虑。</p>
+    <div class="reward-grid">
+      <div class="card reward-card"><div class="emoji">📖</div><h3>字母图鉴</h3><p>宝可梦图鉴式的收集册，26 格，未捕获显示剪影。</p></div>
+      <div class="card reward-card"><div class="emoji">🎩</div><h3>蛋仔装扮间</h3><p>过关掉落帽子、披风、表情，装扮自己的探险蛋仔，纯外观。</p></div>
+      <div class="card reward-card"><div class="emoji">🥚</div><h3>神秘蛋扭蛋机</h3><p>字母币抽取扭蛋，开出装扮或精灵闪光配色，不影响进度。</p></div>
+      <div class="card reward-card"><div class="emoji">🔥</div><h3>连续打卡日历</h3><p>连续 7 天点亮火焰图标，第 7 天有加倍奖励，鼓励每天练一点。</p></div>
+      <div class="card reward-card"><div class="emoji">🤝</div><h3>兄妹合作关卡</h3><p>两人字母精灵组队接力答题，总正确率达标才开出"合作宝箱"，不是比谁快，避免争吵。</p></div>
+      <div class="card reward-card"><div class="emoji">📸</div><h3>立体画报角</h3><p>把收集到的精灵摆进小场景截图，可以发朋友圈"炫耀"，给孩子真实世界的表扬闭环。</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">世界地图</div>
+    <h2 class="title">五大王国，26 个字母，5 场首领战</h2>
+    <p class="lead">地图沿一条路线展开，像素材复用度最高的关卡结构：每个王国 5～6 个字母，通关后挑战一场混合复习的首领战。</p>
+
+    <div class="kingdom k1">
+      <div class="head"><div class="name">① 苹果乐园 Apple Grove</div><div class="boss">首领：大嘴怪蛋 Munchy Mimic</div></div>
+      <div class="letters">
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Aa</span><span class="word">apple</span></div><div class="spirit">苹苹 Applet</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Bb</span><span class="word">bee</span></div><div class="spirit">嗡嗡 Buzzling</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Cc</span><span class="word">cat</span></div><div class="spirit">喵喵 Purrly</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Dd</span><span class="word">duck</span></div><div class="spirit">嘎嘎 Quackle</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Ee</span><span class="word">elephant</span></div><div class="spirit">蹦蹦 Elphi</div></div>
+      </div>
+    </div>
+
+    <div class="kingdom k2">
+      <div class="head"><div class="name">② 火焰谷 Flame Valley</div><div class="boss">首领：烈焰蛋王 Blaze Yolk King</div></div>
+      <div class="letters">
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Ff</span><span class="word">fox</span></div><div class="spirit">狐狐 Foxxy</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Gg</span><span class="word">goat</span></div><div class="spirit">咩咩 Goatee</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Hh</span><span class="word">hen</span></div><div class="spirit">咯咯 Henna</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Ii</span><span class="word">iguana</span></div><div class="spirit">蜥蜥 Iggle</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Jj</span><span class="word">jellyfish</span></div><div class="spirit">胶胶 Jelloo</div></div>
+      </div>
+    </div>
+
+    <div class="kingdom k3">
+      <div class="head"><div class="name">③ 海洋湾 Ocean Bay</div><div class="boss">首领：深海章鱼蛋 Inky Deep-Egg</div></div>
+      <div class="letters">
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Kk</span><span class="word">koala</span></div><div class="spirit">考拉 Koaly</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Ll</span><span class="word">lion</span></div><div class="spirit">狮狮 Leozip</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Mm</span><span class="word">monkey</span></div><div class="spirit">吱吱 Monkido</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Nn</span><span class="word">newt</span></div><div class="spirit">滑滑 Newtly</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Oo</span><span class="word">octopus</span></div><div class="spirit">墨墨 Octoblob</div></div>
+      </div>
+    </div>
+
+    <div class="kingdom k4">
+      <div class="head"><div class="name">④ 星光原 Starlight Plain</div><div class="boss">首领：幻影猫头鹰 Nightowl Shade</div></div>
+      <div class="letters">
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Pp</span><span class="word">panda</span></div><div class="spirit">panda Pandy</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Qq</span><span class="word">quail</span></div><div class="spirit">鹌鹑 Quaily</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Rr</span><span class="word">rabbit</span></div><div class="spirit">兔兔 Rabbibop</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Ss</span><span class="word">sheep</span></div><div class="spirit">绵绵 Sheepo</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Tt</span><span class="word">tiger</span></div><div class="spirit">虎虎 Tigrr</div></div>
+      </div>
+    </div>
+
+    <div class="kingdom k5">
+      <div class="head"><div class="name">⑤ 云朵城 Cloud Castle</div><div class="boss">终极首领：巨蛋守护龙 Grand Egg Dragon</div></div>
+      <div class="letters">
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Uu</span><span class="word">unicorn</span></div><div class="spirit">独角 Unibop</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Vv</span><span class="word">vulture</span></div><div class="spirit">兀兀 Vultoo</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Ww</span><span class="word">walrus</span></div><div class="spirit">胖墩 Wallzy</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Xx</span><span class="word">x-ray fish</span></div><div class="spirit">透透 Xemi</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Yy</span><span class="word">yak</span></div><div class="spirit">牦牦 Yakko</div></div>
+        <div class="letter-cell"><div class="lc-top"><span class="big tag-font">Zz</span><span class="word">zebra</span></div><div class="spirit">斑斑 Zeeb</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">双音标设计</div>
+    <h2 class="title">从小听惯英式和美式</h2>
+    <p class="lead">每个字母配两条音频：字母名读音 + 一个自然拼读示例词，各录英式、美式两版。下面是"听一读"关卡里旗子切换的界面演示（仅演示交互，非真实发音）：</p>
+    <div class="card accent-demo">
+      <button class="flagbtn active" id="btnUS">🇺🇸 美式</button>
+      <button class="flagbtn" id="btnUK">🇬🇧 英式</button>
+      <div class="accent-out" id="accentOut">
+        Bb /biː/ · "bee"
+        <small>美式发音更平舌，元音略短；点右边的英国旗试试英式版本的显示文案。</small>
+      </div>
+    </div>
+    <p class="footnote" style="margin-top:14px;text-align:left;">
+      实现提示：真实发音需要 26×2×2 ≈ 100+ 条音频素材（字母名 + 拼读示例词，各两种口音）。
+      建议先用免费高质量 TTS 批量生成占位音频跑通功能，正式素材可以外包录制，或者做一个"加分彩蛋" —— 让爸爸录美式、妈妈录英式，孩子会更兴奋。
+    </p>
+  </section>
+
+  <section>
+    <div class="kicker">家长视角</div>
+    <h2 class="title">哪些字母还没吃透，一眼看出</h2>
+    <p class="lead">给两个孩子各一行掌握度面板（示例数据，非真实进度），红黄绿一眼看出该在生活中额外强化哪个字母。</p>
+    <div class="card">
+      <div class="dash-row">
+        <div class="who">哥哥</div>
+        <div class="dash-grid" id="rowBoy"></div>
+      </div>
+      <div class="dash-row">
+        <div class="who">妹妹</div>
+        <div class="dash-grid" id="rowGirl"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--line)"></i>未开始</span>
+        <span><i style="background:var(--yolk)"></i>1–2 枚徽章</span>
+        <span><i style="background:var(--mint)"></i>已进化 / 熟练</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">开发路线图</div>
+    <h2 class="title">现在做到哪一步了</h2>
+    <p class="lead">仓库 <code>minigame-1</code> 目前是微信小游戏官方模板（打飞机 Demo），里面现成的 Sprite / 对象池 / 帧动画 / DataBus 架构正好够用，接下来按阶段替换成字母大冒险。</p>
+    <div class="card road">
+      <div class="road-item">
+        <div class="road-badge done">✓</div>
+        <div><h3>阶段 0 · 已完成</h3><p>仓库初始化并推送到 GitHub（<a href="https://github.com/gabyic/minigame-1" target="_blank" rel="noopener">gabyic/minigame-1</a>，Public）；完成本设计方案。</p></div>
+      </div>
+      <div class="road-item">
+        <div class="road-badge next">1</div>
+        <div><h3>阶段 1 · 下一步</h3><p>世界地图场景 + 苹果乐园（A–E）「认一认」关卡可玩通关，先用占位图形跑通主循环。</p></div>
+      </div>
+      <div class="road-item">
+        <div class="road-badge later">2</div>
+        <div><h3>阶段 2</h3><p>手指描字母的「写一写」引擎 + 字母图鉴 + 进化系统。</p></div>
+      </div>
+      <div class="road-item">
+        <div class="road-badge later">3</div>
+        <div><h3>阶段 3</h3><p>「听一读」双音标音频接入（需要外部素材）+ 扭蛋 / 装扮间 / 连续打卡奖励系统。</p></div>
+      </div>
+      <div class="road-item">
+        <div class="road-badge later">4</div>
+        <div><h3>阶段 4</h3><p>兄妹合作关卡、家长掌握度面板、剩余四大王国内容。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <p class="footnote">字母大冒险 · 设计方案 v1 · 2026-09-14</p>
+</div>
+
+<script>
+(function(){
+  var btnUS = document.getElementById('btnUS');
+  var btnUK = document.getElementById('btnUK');
+  var out = document.getElementById('accentOut');
+  function setAccent(us){
+    btnUS.classList.toggle('active', us);
+    btnUK.classList.toggle('active', !us);
+    out.innerHTML = us
+      ? 'Bb /biː/ · "bee"<small>美式发音更平舌，元音略短；点右边的英国旗试试英式版本的显示文案。</small>'
+      : 'Bb /biː/ · "bee"<small>英式发音尾音更完整、音调轻微上揬；这里只演示交互，实际需接录制音频。';
+  }
+  btnUS.addEventListener('click', function(){ setAccent(true); });
+  btnUK.addEventListener('click', function(){ setAccent(false); });
+
+  function paintRow(id, seed){
+    var el = document.getElementById(id);
+    var colors = ['var(--line)','var(--yolk)','var(--mint)'];
+    for (var i=0;i<26;i++){
+      var d = document.createElement('div');
+      d.className = 'dash-cell';
+      var r = (Math.sin(i*12.9898+seed)*43758.5453)%1;
+      r = Math.abs(r);
+      var lvl = r < 0.35 ? 0 : (r < 0.7 ? 1 : 2);
+      d.style.background = colors[lvl];
+      el.appendChild(d);
+    }
+  }
+  paintRow('rowBoy', 3.1);
+  paintRow('rowGirl', 7.7);
+})();
+</script>
